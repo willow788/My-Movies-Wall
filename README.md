@@ -179,7 +179,7 @@ Contributions are welcome! Here's how you can help:
 
 ## 📝 License
 
-This project is licensed under the ISC License.
+This project is licensed under the MIT License.
 
 ## 💡 Inspiration
 
