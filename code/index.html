@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>My Movie Wall</title>
+  <style>
+    :root {
+      --desktop-1: #ffd6ea;
+      --desktop-2: #d9d9ff;
+      --desktop-3: #c8f1ff;
+      --win-face: #c0c0c0;
+      --win-face-2: #dcdcdc;
+      --win-shadow: #404040;
+      --win-mid: #808080;
+      --win-hi: #ffffff;
+      --accent-a: #7c6cff;
+      --accent-b: #ff5aa6;
+      --accent-c: #3aa7ff;
+      --ink: #000;
+
+      --sticker-yellow: #fff3b0;
+      --sticker-pink: #ffd1e8;
+      --sticker-blue: #cfe9ff;
+    }
+
+    body {
+      margin: 0;
+      color: #000;
+      font-family: Tahoma, "MS Sans Serif", Arial, sans-serif;
+      position: relative;
+      background:
+        /* Pastel desktop + subtle dithering (no kawaii sparkle) */
+        radial-gradient(900px 520px at 15% 0%, rgba(255,255,255,0.45), transparent 58%),
+        radial-gradient(900px 520px at 85% 10%, rgba(0,0,0,0.08), transparent 60%),
+        repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 5px),
+        repeating-linear-gradient(90deg, rgba(0,0,0,0.04) 0, rgba(0,0,0,0.04) 1px, transparent 1px, transparent 7px),
+        linear-gradient(135deg, var(--desktop-1), var(--desktop-2) 42%, var(--desktop-3));
+    }
+
+    /* CRT-ish scanlines (subtle) */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          rgba(0,0,0,0.05) 0px,
+          rgba(0,0,0,0.05) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+      opacity: 0.10;
+      mix-blend-mode: soft-light;
+    }
+
+    ::selection {
+      background: rgba(124,108,255,0.35);
+    }
+
+    .desktop {
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 18px 18px 40px;
+    }
+
+    .window {
+      width: min(1240px, 100%);
+      background: var(--win-face);
+      border-top: 2px solid var(--win-hi);
+      border-left: 2px solid var(--win-hi);
+      border-right: 2px solid var(--win-shadow);
+      border-bottom: 2px solid var(--win-shadow);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(0,0,0,0.18),
+        0 18px 30px rgba(0,0,0,0.35);
+      position: relative;
+    }
+
+    .window::before {
+      content: "";
+      position: absolute;
+      inset: 3px;
+      pointer-events: none;
+      border-top: 1px solid rgba(255,255,255,0.7);
+      border-left: 1px solid rgba(255,255,255,0.7);
+      border-right: 1px solid rgba(0,0,0,0.20);
+      border-bottom: 1px solid rgba(0,0,0,0.20);
+    }
+
+    .titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 6px 6px;
+      background: linear-gradient(90deg, var(--accent-a), var(--accent-b) 58%, var(--accent-c));
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      user-select: none;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.35),
+        inset 0 -1px 0 rgba(0,0,0,0.18);
+    }
+
+    .titlebar::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 100%;
+      pointer-events: none;
+      background:
+        radial-gradient(12px 10px at 12px 8px, rgba(255,255,255,0.35), transparent 60%),
+        radial-gradient(10px 8px at 58px 18px, rgba(255,255,255,0.25), transparent 60%),
+        radial-gradient(10px 8px at 82% 10px, rgba(255,255,255,0.22), transparent 60%);
+      opacity: 0.55;
+    }
+
+    .title-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .win-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+      border-top: 1px solid rgba(255,255,255,0.8);
+      border-left: 1px solid rgba(255,255,255,0.8);
+      border-right: 1px solid rgba(0,0,0,0.35);
+      border-bottom: 1px solid rgba(0,0,0,0.35);
+      background:
+        linear-gradient(135deg, #ff77b7, #ffd56a 40%, #66e5c7 70%, #6f8bff);
+    }
+
+    .title-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+
+    .title-controls {
+      display: flex;
+      gap: 4px;
+    }
+
+    .win-btn {
+      width: 20px;
+      height: 18px;
+      padding: 0;
+      font: inherit;
+      background: linear-gradient(180deg, #f7f7ff, var(--win-face));
+      color: var(--ink);
+      border-top: 2px solid var(--win-hi);
+      border-left: 2px solid var(--win-hi);
+      border-right: 2px solid var(--win-shadow);
+      border-bottom: 2px solid var(--win-shadow);
+      line-height: 16px;
+    }
+
+    .win-btn:active {
+      border-top: 2px solid var(--win-shadow);
+      border-left: 2px solid var(--win-shadow);
+      border-right: 2px solid var(--win-hi);
+      border-bottom: 2px solid var(--win-hi);
+    }
+
+    .menubar {
+      display: flex;
+      gap: 18px;
+      padding: 6px 10px;
+      background: linear-gradient(180deg, #f6f1ff, var(--win-face-2));
+      border-top: 2px solid var(--win-hi);
+      border-left: 2px solid var(--win-hi);
+      border-right: 2px solid var(--win-shadow);
+      border-bottom: 2px solid var(--win-shadow);
+      font-size: 12px;
+      user-select: none;
+    }
+
+    .menubar span {
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    .menubar span:hover {
+      background: var(--accent-a);
+      color: #fff;
+    }
+
+    .menubar span:active {
+      background: var(--accent-b);
+      color: #fff;
+    }
+
+    .menubar span::first-letter {
+      text-decoration: underline;
+    }
+
+    .content {
+      padding: 10px;
+      background: var(--win-face);
+    }
+
+    h1 {
+      text-align:center;
+      margin: 18px auto 8px;
+      padding: 10px 12px;
+      max-width: 1200px;
+      color: #ffffff;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+
+      /* Win95 title bar */
+      background: linear-gradient(90deg, var(--accent-a), var(--accent-b) 58%, var(--accent-c));
+      border-top: 2px solid var(--win-hi);
+      border-left: 2px solid var(--win-hi);
+      border-right: 2px solid var(--win-shadow);
+      border-bottom: 2px solid var(--win-shadow);
+      box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.35);
+    }
+
+    .wall {
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 28px;
+      padding: 28px;
+      max-width: 1200px;
+      margin: 0 auto;
+      background:
+        radial-gradient(6px 6px at 12px 10px, rgba(255,255,255,0.65), transparent 60%),
+        radial-gradient(6px 6px at 34px 26px, rgba(255,255,255,0.45), transparent 60%),
+        linear-gradient(180deg, #fff6fb, var(--win-face-2));
+
+      /* recessed panel */
+      border-top: 2px solid var(--win-mid);
+      border-left: 2px solid var(--win-mid);
+      border-right: 2px solid var(--win-hi);
+      border-bottom: 2px solid var(--win-hi);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.12) inset;
+    }
+
+    .statusbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 6px 10px;
+      background: linear-gradient(180deg, #f6f1ff, var(--win-face-2));
+      border-top: 2px solid var(--win-hi);
+      border-left: 2px solid var(--win-hi);
+      border-right: 2px solid var(--win-shadow);
+      border-bottom: 2px solid var(--win-shadow);
+      font-size: 12px;
+      user-select: none;
+    }
+
+    .status-seg {
+      padding: 3px 8px;
+      background: linear-gradient(180deg, #fff, var(--win-face));
+      /* sunken look */
+      border-top: 2px solid var(--win-mid);
+      border-left: 2px solid var(--win-mid);
+      border-right: 2px solid var(--win-hi);
+      border-bottom: 2px solid var(--win-hi);
+      min-height: 16px;
+    }
+
+    .poster {
+      position:relative;
+      overflow:hidden;
+      border-radius: 3px;
+      background: linear-gradient(180deg, #fff, var(--win-face));
+      border-top: 2px solid var(--win-hi);
+      border-left: 2px solid var(--win-hi);
+      border-right: 2px solid var(--win-shadow);
+      border-bottom: 2px solid var(--win-shadow);
+      box-shadow:
+        0 10px 18px rgba(0,0,0,0.26),
+        0 0 0 1px rgba(255,255,255,0.35) inset;
+      cursor:pointer;
+    }
+
+    .poster::after {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      pointer-events: none;
+      border-top: 1px solid rgba(255,255,255,0.85);
+      border-left: 1px solid rgba(255,255,255,0.85);
+      border-right: 1px solid rgba(0,0,0,0.25);
+      border-bottom: 1px solid rgba(0,0,0,0.25);
+    }
+
+    .poster::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(135deg, rgba(255,90,166,0.20), transparent 40%),
+        linear-gradient(315deg, rgba(124,108,255,0.18), transparent 45%);
+      mix-blend-mode: normal;
+      opacity: 0.55;
+    }
+
+
+    .poster img {
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      transition: transform .2s ease;
+      display: block;
+      image-rendering: auto;
+      border-top: 1px solid rgba(0,0,0,0.18);
+      border-left: 1px solid rgba(0,0,0,0.18);
+    }
+
+    .poster:hover img {
+      transform: scale(1.06);
+    }
+
+    .poster:active {
+      transform: translateY(2px);
+      border-top: 2px solid var(--win-shadow);
+      border-left: 2px solid var(--win-shadow);
+      border-right: 2px solid var(--win-hi);
+      border-bottom: 2px solid var(--win-hi);
+      box-shadow: 0 7px 14px rgba(0,0,0,0.26);
+    }
+
+    .title {
+      position:absolute;
+      bottom:0;
+      width:100%;
+      padding: 10px 10px;
+      color: #000;
+      background: linear-gradient(90deg, #fff6fb, #eae7ff 55%, #e4f6ff);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      border-top: 2px solid var(--win-hi);
+      text-shadow: 1px 1px 0 rgba(255,255,255,0.7);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.55);
+    }
+
+    /* A little extra 90s attitude */
+    .poster:hover {
+      outline: 2px dotted var(--accent-b);
+      outline-offset: -6px;
+      box-shadow:
+        0 12px 20px rgba(0,0,0,0.24),
+        0 0 0 2px rgba(255,90,166,0.12),
+        0 0 0 1px rgba(255,255,255,0.35) inset;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .poster img { transition: none; }
+      .poster:hover img { transform: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="desktop">
+    <div class="window" role="application" aria-label="My Movie Wall">
+      <div class="titlebar">
+        <div class="title-left">
+          <span class="win-icon" aria-hidden="true"></span>
+          <span class="title-text">My Movie Wall</span>
+        </div>
+        <div class="title-controls" aria-hidden="true">
+          <button class="win-btn" type="button" tabindex="-1">_</button>
+          <button class="win-btn" type="button" tabindex="-1">▢</button>
+          <button class="win-btn" type="button" tabindex="-1">X</button>
+        </div>
+      </div>
+      <div class="menubar" aria-hidden="true">
+        <span>File</span>
+        <span>Edit</span>
+        <span>View</span>
+        <span>Help</span>
+      </div>
+      <div class="content">
+        <div class="wall" id="wall"></div>
+      </div>
+      <div class="statusbar" aria-hidden="true">
+        <div class="status-seg">Ready</div>
+        <div class="status-seg">Posters</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const fallbackPoster = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' width='600' height='900'>
+        <rect width='100%' height='100%' fill='#1b1b1b'/>
+        <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle'
+              fill='#ffffff' font-family='Arial, sans-serif' font-size='36'>
+          No Poster
+        </text>
+      </svg>
+    `);
+
+    fetch('/api/movies')
+      .then(res => res.json())
+      .then(movies => {
+        const wall = document.getElementById("wall");
+
+        movies.forEach(m => {
+          const div = document.createElement("div");
+          div.className = "poster";
+
+          const posterSrc = encodeURI(m.poster);
+
+          div.innerHTML = `
+            <img src="${posterSrc}" alt="${m.title}" loading="lazy" referrerpolicy="no-referrer">
+            <div class="title">${m.title}</div>
+          `;
+
+          const img = div.querySelector('img');
+          img.addEventListener('error', () => {
+            img.src = fallbackPoster;
+          }, { once: true });
+
+          wall.appendChild(div);
+        });
+      })
+      .catch(() => {
+        const wall = document.getElementById("wall");
+        wall.textContent = "Could not load movies. Make sure the server is running.";
+      });
+  </script>
+</body>
+</html>
